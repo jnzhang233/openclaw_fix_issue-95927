@@ -86,6 +86,12 @@ export type AgentContextPruningConfig = {
     /** Placeholder text inserted when a tool result is hard-cleared. */
     placeholder?: string;
   };
+  thinking?: {
+    /** Enable thinking block pruning during replay view assembly. */
+    enabled?: boolean;
+    /** Number of most recent assistant turns to preserve thinking blocks. */
+    keepRecentTurns?: number;
+  };
 };
 
 export type AgentStartupContextConfig = {

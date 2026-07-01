@@ -757,9 +757,16 @@ export async function sanitizeSessionHistory(params: {
   const droppedReasoning = policy.dropReasoningFromHistory
     ? dropReasoningFromHistory(validatedThinkingSignatures)
     : validatedThinkingSignatures;
-  const droppedThinking = policy.dropThinkingBlocks
-    ? dropThinkingBlocks(droppedReasoning)
-    : droppedReasoning;
+  // Read thinking pruning config from contextPruning
+  const thinkingPruning = params.config?.agents?.defaults?.contextPruning?.thinking;
+  // Apply thinking block pruning based on config
+  const droppedThinking = thinkingPruning?.enabled
+    ? dropThinkingBlocks(droppedReasoning, {
+        keepRecentTurns: thinkingPruning.keepRecentTurns ?? 1,
+      })
+    : policy.dropThinkingBlocks
+      ? dropThinkingBlocks(droppedReasoning)
+      : droppedReasoning;
   const sanitizedToolCalls = sanitizeToolCallInputs(droppedThinking, {
     allowedToolNames: params.allowedToolNames,
     allowProviderOwnedThinkingReplay,
