@@ -27,9 +27,27 @@ type ContextPruningConfig = {
     enabled?: boolean;
     placeholder?: string;
   };
+  /**
+   * Thinking block pruning configuration.
+   *
+   * Provider strategy (policy.dropThinkingBlocks) controls default behavior:
+   * - If provider natively drops thinking blocks (e.g., Gemini), thinking pruning is applied by default.
+   * - If provider preserves thinking blocks (e.g., Claude), thinking blocks are kept by default.
+   *
+   * User can override provider strategy with `overrideProviderStrategy: true`:
+   * - Use this when provider's preservation causes issues (e.g., Anthropic signature validation failures).
+   * - WARNING: Overriding provider strategy may break provider-specific features.
+   * - `keepRecentTurns` ensures latest thinking blocks are always preserved.
+   *
+   * Default: enabled=true, keepRecentTurns=1, overrideProviderStrategy=false
+   */
   thinking?: {
+    /** Enable thinking block pruning. Default: true */
     enabled?: boolean;
+    /** Number of recent assistant turns to preserve thinking blocks. Default: 1 */
     keepRecentTurns?: number;
+    /** Override provider's preservation strategy. Default: false. Use with caution. */
+    overrideProviderStrategy?: boolean;
   };
 };
 
@@ -54,6 +72,7 @@ export type EffectiveContextPruningSettings = {
   thinking: {
     enabled: boolean;
     keepRecentTurns: number;
+    overrideProviderStrategy: boolean;
   };
 };
 
@@ -77,6 +96,7 @@ export const DEFAULT_CONTEXT_PRUNING_SETTINGS: EffectiveContextPruningSettings =
   thinking: {
     enabled: true,
     keepRecentTurns: 1,
+    overrideProviderStrategy: false,
   },
 };
 
@@ -142,6 +162,9 @@ export function computeEffectiveSettings(raw: unknown): EffectiveContextPruningS
     }
     if (typeof cfg.thinking.keepRecentTurns === "number" && Number.isFinite(cfg.thinking.keepRecentTurns)) {
       s.thinking.keepRecentTurns = Math.max(1, Math.floor(cfg.thinking.keepRecentTurns));
+    }
+    if (typeof cfg.thinking.overrideProviderStrategy === "boolean") {
+      s.thinking.overrideProviderStrategy = cfg.thinking.overrideProviderStrategy;
     }
   }
 
